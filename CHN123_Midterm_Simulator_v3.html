@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CHN123 Midterm Simulator v3</title>
+<style>
+:root{
+  --bg:#f7f8fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--line:#dfe3ea;
+  --blue:#2563eb;--green:#14966f;--green2:#0f766e;--bad:#dc2626;--good:#059669;
+  --nav:#1f6ecf;--soft:#f3f4f6;--yellow:#d7a917
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);
+font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+button,input,textarea,select{font:inherit}.app{max-width:1320px;margin:auto;padding:18px}
+.header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.title h1{margin:0;font-size:24px}.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+button{border:0;border-radius:8px;padding:10px 14px;cursor:pointer;background:#edf0f4;color:#1f2937}
+button.primary{background:var(--green);color:#fff;font-weight:700} button.blue{background:#1264bb;color:#fff}
+button.ghost{background:#fff;border:1px solid var(--line)}button:hover{filter:brightness(.985)}
+.workspace{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px}
+.sidebar,.paper{background:#fff;border:1px solid var(--line);border-radius:16px}
+.sidebar{padding:16px;height:max-content;position:sticky;top:12px}
+.timerbox{border-bottom:1px solid #e8ebef;padding-bottom:14px;margin-bottom:14px}
+.timebar{height:8px;background:#eef0f2;border-radius:99px;overflow:hidden;margin:8px 0}
+.timebar>div{height:100%;background:var(--yellow);width:100%}
+.timer{font-size:22px;font-weight:800;color:#a36d00}
+.number-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0 16px}
+.qnum{height:38px;padding:0;border:1px solid #d6dce5;background:#fff;font-weight:700}
+.qnum.active{background:#0f66bd;color:#fff;border-color:#0f66bd}
+.qnum.answered{box-shadow:inset 0 -4px 0 #71b9a3}.qnum.wrong{box-shadow:inset 0 -4px 0 #ef4444}
+.side-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.side-actions button{font-weight:700}
+.full{grid-column:1/-1}.sidebar small{color:var(--muted)}.paper{padding:26px;min-height:680px}
+.qhead{font-size:14px;font-weight:800;color:#244b7c;text-transform:uppercase;margin-bottom:26px}
+.qtext{font-size:27px;line-height:1.55;margin:0 0 24px;white-space:pre-wrap}
+.pinyin{font-size:20px;line-height:1.5;margin:-10px 0 24px;color:#27364a}
+.options{display:grid;gap:12px;max-width:900px}.option{display:flex;gap:14px;align-items:flex-start;border:1px solid transparent;padding:7px 4px;border-radius:10px;cursor:pointer}
+.option:hover{background:#f8fafc}.radio{width:25px;height:25px;border:2px solid #c9cfd7;border-radius:50%;flex:0 0 25px;margin-top:2px;position:relative}
+.option.selected .radio{border-color:#176bc4}.option.selected .radio:after{content:"";position:absolute;width:11px;height:11px;background:#176bc4;border-radius:50%;top:5px;left:5px}
+.option.correct{background:#ecfdf5}.option.incorrect{background:#fef2f2}.option-text{font-size:23px;line-height:1.45}
+textarea{width:100%;min-height:180px;border:1px solid #dde2e8;border-radius:8px;padding:15px;font-size:20px;resize:vertical}
+.essay-help{font-size:13px;color:var(--muted);margin:10px 0 0}.feedback{margin-top:20px;padding:14px 16px;border-radius:10px;background:#f8fafc;border:1px solid #e5e7eb;line-height:1.6}
+.feedback.good{background:#ecfdf5;border-color:#bbf7d0}.feedback.bad{background:#fef2f2;border-color:#fecaca}
+.hidden{display:none!important}.top-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.top-tabs button.active{background:#1f6ecf;color:#fff;font-weight:800}
+.study-shell{display:grid;grid-template-columns:250px 1fr;gap:14px}.study-nav{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;height:max-content}
+.study-nav button{width:100%;text-align:left;margin:4px 0}.study-nav button.active{background:#e8f1fd;color:#114c94;font-weight:800}
+.study-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;min-height:630px}
+.study-q{font-size:25px;line-height:1.55;margin:20px 0}.study-options{display:grid;gap:10px}
+.study-opt{padding:13px;border:1px solid var(--line);border-radius:10px;background:#fff;text-align:left}
+.study-opt.ok{background:#ecfdf5;border-color:#a7f3d0}.study-opt.no{background:#fef2f2;border-color:#fecaca}
+.badge{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;background:#eef2ff;color:#3730a3;font-weight:700}
+.rulebox{border:1px solid var(--line);border-radius:13px;padding:15px;margin:11px 0}.rule{font-size:19px;font-weight:800}.formula{background:#f3f4f6;border-radius:8px;padding:9px;margin:8px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.note{font-size:13px;color:var(--muted)}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}
+select{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff}.result-summary{font-size:18px;margin-bottom:14px}
+.review-item{border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0}.review-item.good{border-left:5px solid #10b981}.review-item.bad{border-left:5px solid #ef4444}
+.source-note{font-size:12px;color:#6b7280}.warning{padding:10px 12px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;margin-bottom:12px}
+@media(max-width:850px){
+ .workspace,.study-shell{grid-template-columns:1fr}.sidebar{position:static}.paper{padding:18px}.qtext{font-size:23px}.option-text{font-size:19px}
+ .number-grid{grid-template-columns:repeat(5,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="title">
+      <h1>CHN123 • Midterm Simulator</h1>
+      <div class="sub">Mô phỏng form đề FPT từ ảnh đề thật + SBT HSK2 Bài 1–6</div>
+    </div>
+    <div class="header-actions">
+      <button id="tabExam" class="blue">Đề 15 câu</button>
+      <button id="tabStudy" class="ghost">Ôn theo dạng</button>
+    </div>
+  </div>
+
+  <div id="examView">
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="timerbox">
+          <small>Thời gian còn lại</small>
+          <div class="timebar"><div id="timeBar"></div></div>
+          <div class="timer" id="timer">20m : 00s</div>
+        </div>
+        <div class="number-grid" id="numberGrid"></div>
+        <div class="side-actions">
+          <button id="prevQ" class="primary">← Trước</button>
+          <button id="reloadExam" class="blue">↻ Tải lại</button>
+          <button id="nextQ" class="primary">Tiếp theo →</button>
+          <button id="saveExam" class="ghost">▣ Lưu bài làm</button>
+          <button id="submitExam" class="full">Nộp bài</button>
+        </div>
+        <div style="margin-top:14px">
+          <small id="examModeNote">Đề mô phỏng: 9 câu trắc nghiệm + 6 câu sắp xếp.</small>
+        </div>
+      </aside>
+
+      <main class="paper">
+        <div id="questionArea">
+          <div class="qhead" id="qHead"></div>
+          <div class="qtext" id="qText"></div>
+          <div class="pinyin hidden" id="qPinyin"></div>
+          <div class="options" id="options"></div>
+          <textarea id="essayInput" class="hidden" placeholder="Nhập câu trả lời..."></textarea>
+          <div class="essay-help hidden" id="essayHelp">Sắp xếp đúng các từ/cụm đã cho. Không cần thêm từ nếu đề không có.</div>
+          <div class="feedback hidden" id="instantFeedback"></div>
+        </div>
+
+        <div id="examResult" class="hidden">
+          <div class="result-summary" id="resultSummary"></div>
+          <div id="reviewList"></div>
+          <button class="primary" id="newExamAfter">Làm đề mới</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="studyView" class="hidden">
+    <div class="warning">Một số câu trong ảnh đề cũ dùng ngữ pháp rộng hơn phạm vi SBT Bài 1–6 hiện tại. Vì vậy app tách rõ “Ảnh đề thật” và “SBT Bài 1–6”, tránh nhầm câu cũ thành chắc chắn sẽ thi.</div>
+    <div class="study-shell">
+      <aside class="study-nav">
+        <button class="active" data-study="real">📸 Câu trong ảnh đề thật</button>
+        <button data-study="p2">② SBT Phần 2 → dạng 4 đáp án</button>
+        <button data-study="p4">④ SBT Phần 4 → dạng 4 đáp án</button>
+        <button data-study="grammar">🧠 Ngữ pháp đề thật</button>
+        <button data-study="essay">✍️ Sắp xếp câu</button>
+        <button data-study="mistakes">🔥 Câu đã sai</button>
+        <hr style="border:0;border-top:1px solid #e5e7eb;margin:12px 0">
+        <label class="note">Lọc SBT theo bài</label>
+        <select id="lessonFilter" style="width:100%;margin-top:6px">
+          <option value="all">Bài 1–6</option><option value="1">Bài 1</option><option value="2">Bài 2</option>
+          <option value="3">Bài 3</option><option value="4">Bài 4</option><option value="5">Bài 5</option><option value="6">Bài 6</option>
+        </select>
+      </aside>
+      <main class="study-card" id="studyCard"></main>
+    </div>
+  </div>
+</div>
+
+<script>
+const part2Book = [
+{lesson:1,source:"SBT Bài 1 • Phần 2 • Câu 21",q:"王方（　）买一个新杯子。",pinyin:"Wáng Fāng (   ) mǎi yí ge xīn bēizi.",bank:[["A","为什么","wèishénme"],["B","要","yào"],["C","最","zuì"],["D","觉得","juéde"],["E","贵","guì"],["F","也","yě"]],answer:"B",explain:"要 + động từ = muốn/dự định làm gì. → 要买 = muốn mua."},
+{lesson:1,source:"SBT Bài 1 • Phần 2 • Câu 22",q:"昨天你（　）没来我家吃饭？",pinyin:"Zuótiān nǐ (   ) méi lái wǒ jiā chīfàn?",bank:null,answer:"A",explain:"为什么 = tại sao. Câu hỏi đang hỏi nguyên nhân vì sao hôm qua không đến."},
+{lesson:1,source:"SBT Bài 1 • Phần 2 • Câu 23",q:"我（　）这个衣服太大了，你看看那个吧。",pinyin:"Wǒ (   ) zhège yīfu tài dà le, nǐ kànkan nàge ba.",bank:null,answer:"D",explain:"觉得 + nhận xét = cảm thấy/cho rằng. → 我觉得这个衣服太大了。"},
+{lesson:1,source:"SBT Bài 1 • Phần 2 • Câu 24",q:"我的小猫两岁多了，大卫的小猫（　）两岁多了。",pinyin:"Wǒ de xiǎomāo liǎng suì duō le, Dàwèi de xiǎomāo (   ) liǎng suì duō le.",bank:null,answer:"F",explain:"也 = cũng. Hai con mèo đều hơn hai tuổi."},
+{lesson:1,source:"SBT Bài 1 • Phần 2 • Câu 25",q:"王老师（　）喜欢吃苹果。",pinyin:"Wáng lǎoshī (   ) xǐhuan chī píngguǒ.",bank:null,answer:"C",explain:"最喜欢 = thích nhất."},
+
+{lesson:2,source:"SBT Bài 2 • Phần 2 • Câu 21",q:"我们（　）个星期六都工作。",pinyin:"Wǒmen (   ) ge xīngqīliù dōu gōngzuò.",bank:[["A","出去","chūqu"],["B","每","měi"],["C","忙","máng"],["D","知道","zhīdào"],["E","贵","guì"],["F","生病","shēngbìng"]],answer:"B",explain:"每 + lượng từ/danh từ thời gian = mỗi... → 每个星期六 = mỗi thứ Bảy."},
+{lesson:2,source:"SBT Bài 2 • Phần 2 • Câu 22",q:"对不起，我很（　），没时间去看电影。",pinyin:"Duìbuqǐ, wǒ hěn (   ), méi shíjiān qù kàn diànyǐng.",bank:null,answer:"C",explain:"很忙 = rất bận; vì bận nên không có thời gian xem phim."},
+{lesson:2,source:"SBT Bài 2 • Phần 2 • Câu 23",q:"他不在家，下午四点（　）买东西了。",pinyin:"Tā bú zài jiā, xiàwǔ sì diǎn (   ) mǎi dōngxi le.",bank:null,answer:"A",explain:"出去买东西 = ra ngoài mua đồ."},
+{lesson:2,source:"SBT Bài 2 • Phần 2 • Câu 24",q:"我的小猫不想吃东西，我觉得它（　）了。",pinyin:"Wǒ de xiǎomāo bù xiǎng chī dōngxi, wǒ juéde tā (   ) le.",bank:null,answer:"F",explain:"不想吃东西 → dấu hiệu suy luận 生病了 = bị bệnh."},
+{lesson:2,source:"SBT Bài 2 • Phần 2 • Câu 25",q:"我也不（　）北京的天气，你问问小李，他是北京人。",pinyin:"Wǒ yě bù (   ) Běijīng de tiānqì, nǐ wènwen Xiǎo Lǐ, tā shì Běijīng rén.",bank:null,answer:"D",explain:"不知道 = không biết. Sau đó bảo đi hỏi Tiểu Lý."},
+
+{lesson:3,source:"SBT Bài 3 • Phần 2 • Câu 21",q:"今天的天气（　）好，我们出去玩儿玩儿吧。",pinyin:"Jīntiān de tiānqì (   ) hǎo, wǒmen chūqu wánr wanr ba.",bank:[["A","送","sòng"],["B","真","zhēn"],["C","一下","yíxià"],["D","旁边","pángbiān"],["E","贵","guì"],["F","千","qiān"]],answer:"B",explain:"真 + tính từ = thật/rất... → 真好 = thật đẹp/tốt."},
+{lesson:3,source:"SBT Bài 3 • Phần 2 • Câu 22",q:"我也不知道吃什么，我想（　）。",pinyin:"Wǒ yě bù zhīdào chī shénme, wǒ xiǎng (   ).",bank:null,answer:"C",explain:"想一下 = nghĩ một chút. 一下 đặt sau động từ làm hành động nhẹ/ngắn."},
+{lesson:3,source:"SBT Bài 3 • Phần 2 • Câu 23",q:"我丈夫在医院呢，我要去给他（　）饭。",pinyin:"Wǒ zhàngfu zài yīyuàn ne, wǒ yào qù gěi tā (   ) fàn.",bank:null,answer:"A",explain:"送饭 = mang/đem cơm đến cho ai."},
+{lesson:3,source:"SBT Bài 3 • Phần 2 • Câu 24",q:"这块手表一（　）多块，我有八百块，你有多少钱？",pinyin:"Zhè kuài shǒubiǎo yì (   ) duō kuài, wǒ yǒu bābǎi kuài, nǐ yǒu duōshao qián?",bank:null,answer:"F",explain:"一千多块 = hơn một nghìn tệ."},
+{lesson:3,source:"SBT Bài 3 • Phần 2 • Câu 25",q:"妈妈在做饭呢，爸爸在桌子（　）看报纸呢。",pinyin:"Māma zài zuòfàn ne, bàba zài zhuōzi (   ) kàn bàozhǐ ne.",bank:null,answer:"D",explain:"桌子旁边 = bên cạnh cái bàn."},
+
+{lesson:4,source:"SBT Bài 4 • Phần 2 • Câu 21",q:"我身体不好，不能去学校，你（　）我给王老师打个电话吧。",pinyin:"Wǒ shēntǐ bù hǎo, bù néng qù xuéxiào, nǐ (   ) wǒ gěi Wáng lǎoshī dǎ ge diànhuà ba.",bank:[["A","介绍","jièshào"],["B","帮","bāng"],["C","给","gěi"],["D","非常","fēicháng"],["E","贵","guì"],["F","已经","yǐjīng"]],answer:"B",explain:"帮 + người + động từ = giúp ai làm gì. → 帮我打个电话."},
+{lesson:4,source:"SBT Bài 4 • Phần 2 • Câu 22",q:"明天是丽丽的生日，你想送（　）她什么？",pinyin:"Míngtiān shì Lìli de shēngrì, nǐ xiǎng sòng (   ) tā shénme?",bank:null,answer:"C",explain:"送给 + người + đồ vật = tặng cho ai cái gì."},
+{lesson:4,source:"SBT Bài 4 • Phần 2 • Câu 23",q:"这本书（　）好，我们都看了，你也看看吧。",pinyin:"Zhè běn shū (   ) hǎo, wǒmen dōu kàn le, nǐ yě kànkan ba.",bank:null,answer:"D",explain:"非常 + tính từ = vô cùng/rất. → 非常好."},
+{lesson:4,source:"SBT Bài 4 • Phần 2 • Câu 24",q:"医生说你的病（　）好了，明天开始不吃这个药了。",pinyin:"Yīshēng shuō nǐ de bìng (   ) hǎo le, míngtiān kāishǐ bù chī zhège yào le.",bank:null,answer:"F",explain:"已经...了 = đã... rồi. → 病已经好了."},
+{lesson:4,source:"SBT Bài 4 • Phần 2 • Câu 25",q:"你认识李先生吗？能不能给我（　）一下。",pinyin:"Nǐ rènshi Lǐ xiānsheng ma? Néng bu néng gěi wǒ (   ) yíxià.",bank:null,answer:"A",explain:"给我介绍一下 = giới thiệu cho tôi một chút."},
+
+{lesson:5,source:"SBT Bài 5 • Phần 2 • Câu 21",q:"王方，你去买一点儿水果（　）。",pinyin:"Wáng Fāng, nǐ qù mǎi yìdiǎnr shuǐguǒ (   ).",bank:[["A","就","jiù"],["B","吧","ba"],["C","还","hái"],["D","对","duì"],["E","贵","guì"],["F","以后","yǐhòu"]],answer:"B",explain:"吧 ở cuối câu dùng để đề nghị/yêu cầu nhẹ: đi mua ít hoa quả nhé."},
+{lesson:5,source:"SBT Bài 5 • Phần 2 • Câu 22",q:"我下午四点考试，考试（　）给你打电话。",pinyin:"Wǒ xiàwǔ sì diǎn kǎoshì, kǎoshì (   ) gěi nǐ dǎ diànhuà.",bank:null,answer:"F",explain:"考试以后 = sau khi thi."},
+{lesson:5,source:"SBT Bài 5 • Phần 2 • Câu 23",q:"我有两本，你喜欢（　）送给你一本。",pinyin:"Wǒ yǒu liǎng běn, nǐ xǐhuan (   ) sòng gěi nǐ yì běn.",bank:null,answer:"A",explain:"就 ở đây: nếu bạn thích thì (tôi) tặng bạn một quyển."},
+{lesson:5,source:"SBT Bài 5 • Phần 2 • Câu 24",q:"我太忙了，没时间运动，我知道运动（　）身体很好。",pinyin:"Wǒ tài máng le, méi shíjiān yùndòng, wǒ zhīdào yùndòng (   ) shēntǐ hěn hǎo.",bank:null,answer:"D",explain:"对 + danh từ + 好 = tốt cho... → 对身体很好."},
+{lesson:5,source:"SBT Bài 5 • Phần 2 • Câu 25",q:"今天的菜（　）可以，都是我丈夫做的。",pinyin:"Jīntiān de cài (   ) kěyǐ, dōu shì wǒ zhàngfu zuò de.",bank:null,answer:"C",explain:"还可以 = khá được/không tệ."},
+
+{lesson:6,source:"SBT Bài 6 • Phần 2 • Câu 21",q:"昨天下雨了，所以我们都没去（　）篮球。",pinyin:"Zuótiān xiàyǔ le, suǒyǐ wǒmen dōu méi qù (   ) lánqiú.",bank:[["A","件件","jiànjiàn"],["B","因为","yīnwèi"],["C","打","dǎ"],["D","经常","jīngcháng"],["E","贵","guì"],["F","公斤","gōngjīn"]],answer:"C",explain:"打篮球 = chơi bóng rổ. Đây là cụm cố định."},
+{lesson:6,source:"SBT Bài 6 • Phần 2 • Câu 22",q:"这家商店的衣服（　）都漂亮。",pinyin:"Zhè jiā shāngdiàn de yīfu (   ) dōu piàoliang.",bank:null,answer:"A",explain:"件件都... = từng chiếc/chiếc nào cũng...; kiểu lặp lượng từ + 都."},
+{lesson:6,source:"SBT Bài 6 • Phần 2 • Câu 23",q:"我（　）跟同学们一起学习汉语。",pinyin:"Wǒ (   ) gēn tóngxuémen yìqǐ xuéxí Hànyǔ.",bank:null,answer:"D",explain:"经常 + động từ = thường xuyên làm gì."},
+{lesson:6,source:"SBT Bài 6 • Phần 2 • Câu 24",q:"（　）工作很忙，所以我没有时间运动。",pinyin:"(   ) gōngzuò hěn máng, suǒyǐ wǒ méiyǒu shíjiān yùndòng.",bank:null,answer:"B",explain:"因为...所以... = bởi vì... nên..."},
+{lesson:6,source:"SBT Bài 6 • Phần 2 • Câu 25",q:"你知道一（　）苹果多少钱吗？",pinyin:"Nǐ zhīdào yì (   ) píngguǒ duōshao qián ma?",bank:null,answer:"F",explain:"一公斤苹果 = một kilogram táo."}
+];
+
+// Gắn lại bank theo bài cho các câu có bank:null
+const p2Banks = {};
+part2Book.forEach(x=>{if(x.bank)p2Banks[x.lesson]=x.bank;});
+part2Book.forEach(x=>{if(!x.bank)x.bank=p2Banks[x.lesson];});
+
+// ===== PHẦN 4: NGÂN HÀNG A–F + 5 CÂU MỖI BÀI =====
+const part4Lessons = {
+1:{
+ bank:[
+  ["A","桌子上有一本新书。那是你的书吗？","Trên bàn có một quyển sách mới. Đó là sách của bạn à?"],
+  ["B","王老师什么时候能到？","Thầy Vương khi nào có thể đến?"],
+  ["C","他们都去踢足球了，你去不去？","Họ đều đi đá bóng rồi, bạn có đi không?"],
+  ["D","这个小猫很漂亮。它多大了？","Con mèo này rất đẹp. Nó bao nhiêu tuổi rồi?"],
+  ["E","他在哪儿呢？你看见他了吗？","Anh ấy ở đâu? Bạn có nhìn thấy anh ấy không?"],
+  ["F","你为什么不开车去学校？","Tại sao bạn không lái xe đến trường?"]
+ ],
+ items:[
+  ["不是我的，我没买书。","Không phải của tôi, tôi không mua sách.","A","SBT Bài 1 • Phần 4 • Câu 31"],
+  ["三岁多。","Hơn ba tuổi.","D","SBT Bài 1 • Phần 4 • Câu 32"],
+  ["他已经走了，十分钟后能到。","Anh ấy đã đi rồi, mười phút nữa có thể tới.","B","SBT Bài 1 • Phần 4 • Câu 33"],
+  ["我没时间，明天吧。","Tôi không có thời gian, để ngày mai nhé.","C","SBT Bài 1 • Phần 4 • Câu 34"],
+  ["我不想开，我觉得坐出租车很好。","Tôi không muốn lái, tôi thấy đi taxi rất tốt.","F","SBT Bài 1 • Phần 4 • Câu 35"]
+ ]},
+2:{
+ bank:[
+  ["A","他儿子今年八岁了。","Con trai anh ấy năm nay 8 tuổi."],
+  ["B","星期六也不休息，你工作累不累？","Thứ Bảy cũng không nghỉ, bạn làm việc có mệt không?"],
+  ["C","我不喜欢早上运动，我喜欢下午和朋友一起踢足球。","Tôi không thích vận động buổi sáng, tôi thích chiều đá bóng với bạn."],
+  ["D","医生说他不能出院。","Bác sĩ nói anh ấy chưa thể xuất viện."],
+  ["E","他在哪儿呢？你看见他了吗？","Anh ấy ở đâu? Bạn có nhìn thấy anh ấy không?"],
+  ["F","你每天什么时候睡觉？","Mỗi ngày bạn đi ngủ lúc nào?"]
+ ],
+ items:[
+  ["什么？已经三天了，为什么？","Cái gì? Đã ba ngày rồi, tại sao?","D","SBT Bài 2 • Phần 4 • Câu 31"],
+  ["我也不喜欢，我早上没时间。","Tôi cũng không thích, buổi sáng tôi không có thời gian.","C","SBT Bài 2 • Phần 4 • Câu 32"],
+  ["是啊，已经一米四了。","Đúng vậy, đã cao 1m4 rồi.","A","SBT Bài 2 • Phần 4 • Câu 33"],
+  ["没关系，星期天我有不少时间休息。","Không sao, Chủ nhật tôi có khá nhiều thời gian nghỉ.","B","SBT Bài 2 • Phần 4 • Câu 34"],
+  ["九点多吧，很早。我早上起床也很早。","Hơn 9 giờ, khá sớm. Buổi sáng tôi cũng dậy rất sớm.","F","SBT Bài 2 • Phần 4 • Câu 35"]
+ ]},
+3:{
+ bank:[
+  ["A","我不认识前边的那两个人，他们是谁？","Tôi không biết hai người phía trước, họ là ai?"],
+  ["B","来了，你休息一下吧，看看报纸，喝喝茶。","Đến rồi, bạn nghỉ một chút, đọc báo, uống trà nhé."],
+  ["C","我想给爸爸买一块手表，你觉得这块怎么样？","Tôi muốn mua đồng hồ cho bố, bạn thấy chiếc này thế nào?"],
+  ["D","今天我要给儿子、女儿做早饭，要给丈夫做午饭，还要给朋友们做晚饭。","Hôm nay tôi phải làm bữa sáng cho con, bữa trưa cho chồng, còn bữa tối cho bạn."],
+  ["E","他在哪儿呢？你看见他了吗？","Anh ấy ở đâu? Bạn có nhìn thấy anh ấy không?"],
+  ["F","我的房间太小，住不下两个人。","Phòng tôi quá nhỏ, không ở được hai người."]
+ ],
+ items:[
+  ["做三次饭，真累啊！","Nấu ba bữa, thật mệt!","D","SBT Bài 3 • Phần 4 • Câu 31"],
+  ["左边的是王老师，旁边的是张老师。","Bên trái là thầy Vương, bên cạnh là thầy Trương.","A","SBT Bài 3 • Phần 4 • Câu 32"],
+  ["没关系，我去大卫家，他家很大。","Không sao, tôi đến nhà David, nhà anh ấy rất lớn.","F","SBT Bài 3 • Phần 4 • Câu 33"],
+  ["今天的报纸来了吗？","Báo hôm nay đến chưa?","B","SBT Bài 3 • Phần 4 • Câu 34"],
+  ["我觉得这块很漂亮。","Tôi thấy chiếc này rất đẹp.","C","SBT Bài 3 • Phần 4 • Câu 35"]
+ ]},
+4:{
+ bank:[
+  ["A","这本书是你什么时候写的？","Quyển sách này bạn viết khi nào?"],
+  ["B","昨天晚上的电话是谁打的？","Cuộc điện thoại tối qua là ai gọi?"],
+  ["C","你的汉字非常漂亮！","Chữ Hán của bạn rất đẹp!"],
+  ["D","今天我非常高兴，你们多吃点儿。","Hôm nay tôi rất vui, các bạn ăn nhiều một chút nhé."],
+  ["E","他在哪儿呢？你看见他了吗？","Anh ấy ở đâu? Bạn có nhìn thấy anh ấy không?"],
+  ["F","这几天我不想吃饭，觉得很累。","Mấy hôm nay tôi không muốn ăn, cảm thấy rất mệt."]
+ ],
+ items:[
+  ["王方打的，她说今天不能去学校了。","Vương Phương gọi, cô ấy nói hôm nay không thể đến trường.","B","SBT Bài 4 • Phần 4 • Câu 31"],
+  ["谢谢！我是大学的时候开始学的。","Cảm ơn! Tôi bắt đầu học khi còn ở đại học.","C","SBT Bài 4 • Phần 4 • Câu 32"],
+  ["是不是病了？你问一下医生吧。","Có phải bị bệnh rồi không? Bạn hỏi bác sĩ thử nhé.","F","SBT Bài 4 • Phần 4 • Câu 33"],
+  ["2011年吧，已经两年了。","Khoảng năm 2011, đã hai năm rồi.","A","SBT Bài 4 • Phần 4 • Câu 34"],
+  ["我们也很高兴，生日快乐！","Chúng tôi cũng rất vui, chúc mừng sinh nhật!","D","SBT Bài 4 • Phần 4 • Câu 35"]
+ ]},
+5:{
+ bank:[
+  ["A","我今天早上六点起床的，现在有点儿累。","Sáng nay tôi dậy lúc 6 giờ, giờ hơi mệt."],
+  ["B","你会做什么菜？","Bạn biết nấu món gì?"],
+  ["C","明天我去公司，不去打球了。","Ngày mai tôi đi công ty, không đi chơi bóng nữa."],
+  ["D","昨天的考试你觉得怎么样？","Bạn thấy bài thi hôm qua thế nào?"],
+  ["E","他在哪儿呢？你看见他了吗？","Anh ấy ở đâu? Bạn có nhìn thấy anh ấy không?"],
+  ["F","你准备去北京旅游的东西了吗？","Bạn đã chuẩn bị đồ đi du lịch Bắc Kinh chưa?"]
+ ],
+ items:[
+  ["我会做鱼，你爱吃鱼吗？","Tôi biết làm cá, bạn thích ăn cá không?","B","SBT Bài 5 • Phần 4 • Câu 31"],
+  ["你休息一下吧。","Bạn nghỉ một chút đi.","A","SBT Bài 5 • Phần 4 • Câu 32"],
+  ["我觉得还不错。","Tôi thấy khá ổn/không tệ.","D","SBT Bài 5 • Phần 4 • Câu 33"],
+  ["我们下个星期去，明天再准备吧。","Tuần sau chúng tôi đi, ngày mai hãy chuẩn bị tiếp.","F","SBT Bài 5 • Phần 4 • Câu 34"],
+  ["好吧，你明天回家以后给我打电话。","Được, ngày mai sau khi về nhà gọi điện cho tôi.","C","SBT Bài 5 • Phần 4 • Câu 35"]
+ ]},
+6:{
+ bank:[
+  ["A","是啊，下雨了。","Đúng vậy, trời mưa rồi."],
+  ["B","他已经来了，你没看见吗？","Anh ấy đã đến rồi, bạn không thấy à?"],
+  ["C","他今天身体不太好。","Hôm nay sức khỏe anh ấy không tốt lắm."],
+  ["D","天天吃米饭，我想来点儿面条。","Ngày nào cũng ăn cơm, tôi muốn ăn chút mì."],
+  ["E","他在哪儿呢？你看见他了吗？","Anh ấy ở đâu? Bạn có nhìn thấy anh ấy không?"],
+  ["F","昨天下雨了。","Hôm qua trời mưa."]
+ ],
+ items:[
+  ["小王今天怎么没来学校？","Sao hôm nay Tiểu Vương không đến trường?","C","SBT Bài 6 • Phần 4 • Câu 31"],
+  ["你们昨天怎么没去打篮球？","Sao hôm qua các bạn không đi chơi bóng rổ?","F","SBT Bài 6 • Phần 4 • Câu 32"],
+  ["大卫什么时候来学校？","David khi nào đến trường?","B","SBT Bài 6 • Phần 4 • Câu 33"],
+  ["你还想吃什么？","Bạn còn muốn ăn gì?","D","SBT Bài 6 • Phần 4 • Câu 34"],
+  ["今天天气很冷。","Hôm nay thời tiết rất lạnh.","A","SBT Bài 6 • Phần 4 • Câu 35"]
+ ]}
+};
+
+const part4Book=[];
+Object.entries(part4Lessons).forEach(([lesson,data])=>{
+ data.items.forEach(it=>part4Book.push({lesson:+lesson,q:it[0],meaning:it[1],answer:it[2],source:it[3],bank:data.bank}));
+});
+
+
+// ===== CÂU TRÍCH TỪ 44 ẢNH ĐỀ NGƯỜI DÙNG TẢI LÊN =====
+// Các ảnh trùng cùng một câu được gộp thành một mục duy nhất.
+const realMC = [
+{id:"R1",q:"今天_昨天热一点儿。",options:["便宜","比","可能","说话"],answer:1,topic:"比",explain:"A 比 B + tính từ + 一点儿 → 今天比昨天热一点儿。"},
+{id:"R2",q:"你知道饭馆在哪儿吗？",options:["所以他有点儿不高兴。","我每天坐出租车去公司。","我最喜欢的运动是跑步。","饭馆离我家不远。"],answer:3,topic:"离",explain:"Hỏi vị trí của nhà hàng → câu trả lời phù hợp là 饭馆离我家不远。"},
+{id:"R3",q:"我每天早上都吃一个_。",options:["课","帮助","鸡蛋","别"],answer:2,topic:"量词/词义",explain:"吃一个鸡蛋 = ăn một quả trứng."},
+{id:"R4",q:"今天的午饭太好吃了。",options:["我还想再来点儿呢。","所以他有点儿不高兴。","我每天坐出租车去公司。","我最喜欢的运动是跑步。"],answer:0,topic:"再/来点儿",explain:"Đồ ăn quá ngon → phản hồi tự nhiên: 我还想再来点儿呢。"},
+{id:"R5",q:"你怎么知道呢？",options:["所以没有时间看电影。","爸爸让我给他打个电话。","小王告诉我这件事。","我们去医院看看她吧。"],answer:2,topic:"告诉/事情",explain:"Hỏi 'sao bạn biết?' → 小王告诉我这件事。"},
+{id:"R6",q:"我家离公司很_。",options:["近","让","穿","进"],answer:0,topic:"离/近",explain:"离 + địa điểm + 很近 = cách ... rất gần."},
+{id:"R7",q:"这件衣服多少钱？",options:["正在打电话的人是我爸爸。","那个女孩子比我小三岁。","这件衣服比那件贵50块。","多吃水果对身体好。"],answer:2,topic:"比/价钱",explain:"Hỏi giá quần áo → câu duy nhất nói về giá là 这件衣服比那件贵50块。"},
+{id:"R8",q:"你再唱吧，我想听。",options:["她现在很忙，所以我洗衣服。","别离电视太近，对眼睛不好。","你唱歌唱得太好了。","今天比昨天冷。你多穿衣服吧。"],answer:2,topic:"得",explain:"唱歌唱得太好了 = hát rất hay, phù hợp với yêu cầu hát tiếp."},
+{id:"R9",q:"苹果比西瓜_。",options:["说话","唱歌","便宜","可能"],answer:2,topic:"比/便宜",explain:"苹果比西瓜便宜 = táo rẻ hơn dưa hấu."},
+{id:"R10",q:"你早上经常做什么？",options:["看电脑时间长了对眼睛不好。","我每天早上都看报纸。","妈妈正在洗衣服呢。","别工作了，休息吧。"],answer:1,topic:"经常/时间",explain:"Hỏi thói quen buổi sáng → 我每天早上都看报纸。"},
+{id:"R11",q:"老师_我告诉你这件事。",options:["再","事情","找","让"],answer:3,topic:"让",explain:"让 + người + V = bảo/để ai làm gì → 老师让我告诉你这件事。"},
+{id:"R12",q:"大卫还在_学习呢。",options:["过","就","离","教室"],answer:3,topic:"在+地点",explain:"在教室学习 = học trong lớp."},
+{id:"R13",q:"今天的课你都听_了没有？",options:["懂","希望","上班","从"],answer:0,topic:"听懂",explain:"听懂 = nghe hiểu. 你都听懂了没有？"},
+{id:"R14",q:"今年你想怎么_生日？",options:["公司","离","过","就"],answer:2,topic:"过生日",explain:"过生日 = tổ chức/đón sinh nhật."},
+{id:"R15",q:"我每天_七点到十一点上课。",options:["上班","希望","从","问题"],answer:2,topic:"从...到...",explain:"从七点到十一点 = từ 7 giờ đến 11 giờ."},
+{id:"R16",q:"离我的生日还有三天。",options:["从我家到学校要一个小时。","我希望能和朋友一起过生日。","她还要跑步一个小时。","欢迎你来我们公司上班。"],answer:1,topic:"生日/希望",explain:"Câu liên quan trực tiếp đến sinh nhật: 我希望能和朋友一起过生日。"},
+{id:"R17",q:"我今天很忙。",options:["所以没有时间看电影。","我们去医院看看她吧。","我们一起出去运动运动吧。","爸爸让我给他打个电话。"],answer:0,topic:"所以",explain:"很忙 → 所以没有时间看电影。"},
+{id:"R18",q:"外面太冷了，我们_房间吧。",options:["近","进","穿","让"],answer:1,topic:"进",explain:"进房间 = đi vào phòng."}
+];
+
+const realEssay = [
+{id:"E1",tokens:"两个 不要 吃药后 喝茶 小时",pinyin:"liǎng ge bùyào chīyào hòu hē chá xiǎoshí",answer:"吃药后两个小时不要喝茶。",accepted:["吃药后两个小时不要喝茶","吃药后两个小时不要喝茶。"],topic:"时间 + 不要",explain:"吃药后 + 两个小时 + 不要 + 喝茶。"},
+{id:"E2",tokens:"上 车 太多 路 了",pinyin:"shàng chē tài duō lù le",answer:"路上车太多了。",accepted:["路上车太多了","路上车太多了。"],topic:"路上",explain:"路上 = trên đường; 车太多了 = xe quá nhiều."},
+{id:"E3",tokens:"能 希望 住得 我 近 一点儿",pinyin:"néng xīwàng zhùde wǒ jìn yìdiǎnr",answer:"我希望能住得近一点儿。",accepted:["我希望能住得近一点儿","我希望能住得近一点儿。"],topic:"希望能 + V得",explain:"我 + 希望 + 能 + 住得 + 近一点儿。"},
+{id:"E4",tokens:"比 西瓜 便宜 一些 苹果",pinyin:"bǐ xīguā piányi yìxiē píngguǒ",answer:"苹果比西瓜便宜一些。",accepted:["苹果比西瓜便宜一些","苹果比西瓜便宜一些。"],topic:"比",explain:"A 比 B + tính từ + 一些。"},
+{id:"E5",tokens:"了 门 我的 房间 打不开",pinyin:"le mén wǒ de fángjiān dǎ bu kāi",answer:"我的房间门打不开了。",accepted:["我的房间门打不开了","我的房间门打不开了。","我的房间的门打不开了","我的房间的门打不开了。"],topic:"可能补语 打不开",explain:"我的房间门 + 打不开 + 了。"},
+{id:"E6",tokens:"考试 的 听懂 昨天 我都",pinyin:"kǎoshì de tīngdǒng zuótiān wǒ dōu",answer:"昨天的考试我都听懂。",accepted:["昨天的考试我都听懂","昨天的考试我都听懂。","昨天的考试我都听懂了","昨天的考试我都听懂了。"],topic:"的/都/听懂",explain:"Chỉ dùng các từ được cho: 昨天的考试 + 我都 + 听懂. Trong lời nói tự nhiên thường có thể thêm 了, nhưng đề sắp xếp không nên tự thêm từ."},
+{id:"E7",tokens:"十岁 从 跳舞 开始 我 学习",pinyin:"shísuì cóng tiàowǔ kāishǐ wǒ xuéxí",answer:"我从十岁开始学习跳舞。",accepted:["我从十岁开始学习跳舞","我从十岁开始学习跳舞。"],topic:"从...开始",explain:"我 + 从十岁 + 开始 + 学习跳舞。"}
+];
+
+// ===== NGỮ PHÁP ƯU TIÊN TỪ ẢNH ĐỀ THẬT =====
+const grammarFocus = [
+{topic:"比",formula:"A + 比 + B + tính từ (+ 一点儿 / 一些 / số lượng)",example:"今天比昨天热一点儿。 / 苹果比西瓜便宜一些。",trap:"Không dùng 很 ngay sau tính từ trong câu 比 cơ bản."},
+{topic:"得",formula:"V + O + V + 得 + Adj  /  V + 得 + Adj",example:"你唱歌唱得太好了。 / 我希望能住得近一点儿。",trap:"得 đứng sau động từ, không nhầm với 的."},
+{topic:"让",formula:"A + 让 + B + V + O",example:"老师让我告诉你这件事。",trap:"让 phải đứng trước người thực hiện hành động."},
+{topic:"从...到...",formula:"从 + điểm bắt đầu + 到 + điểm kết thúc + V",example:"我每天从七点到十一点上课。",trap:"Không đặt 从 sau 七点."},
+{topic:"从...开始",formula:"S + 从 + thời điểm + 开始 + V",example:"我从十岁开始学习跳舞。",trap:"开始 thường đứng sau mốc bắt đầu."},
+{topic:"离 / 近",formula:"A + 离 + B + 很近/不远/很远",example:"我家离公司很近。 / 饭馆离我家不远。",trap:"离 biểu thị khoảng cách; 进 là 'đi vào', chữ khác hoàn toàn."},
+{topic:"进",formula:"进 + địa điểm",example:"外面太冷了，我们进房间吧。",trap:"近 = gần; 进 = đi vào."},
+{topic:"再",formula:"再 + V = làm lại/làm thêm trong tương lai",example:"你明天再给他打电话吧。 / 我还想再来点儿呢。",trap:"再 thường cho hành động chưa xảy ra/lặp lại về sau."},
+{topic:"过生日",formula:"过 + 生日",example:"今年你想怎么过生日？",trap:"过 ở đây là 'đón/trải qua', không phải trợ từ kinh nghiệm."},
+{topic:"听懂",formula:"听 + 懂 = nghe và hiểu",example:"今天的课你都听懂了没有？",trap:"懂 là bổ ngữ kết quả."},
+{topic:"打不开",formula:"V + 不 + bổ ngữ khả năng",example:"我的房间门打不开了。",trap:"打不开 = không mở được, khác 不打开 = không mở."},
+{topic:"希望能",formula:"S + 希望 + 能 + V",example:"我希望能和朋友一起过生日。",trap:"能 đứng sau 希望."},
+{topic:"所以",formula:"Nguyên nhân，所以 + kết quả",example:"我今天很忙，所以没有时间看电影。",trap:"Đừng chọn câu không có quan hệ nguyên nhân-kết quả."},
+{topic:"便宜",formula:"便宜 = rẻ; 贵 = đắt",example:"苹果比西瓜便宜。",trap:"Trong câu 比 cần chọn tính từ phù hợp nghĩa."},
+{topic:"事情",formula:"告诉 + 人 + 这件事 / 事情",example:"小王告诉我这件事。",trap:"事情 là danh từ 'sự việc', không thể trực tiếp làm động từ trong chỗ trống cần 让."}
+];
+
+// ===== CHUYỂN SBT SANG ĐÚNG FORM 4 ĐÁP ÁN NHƯ ẢNH =====
+function seededDistractors(correct, all, count=3){
+  const xs=all.filter(x=>x!==correct);
+  return xs.slice(0,count);
+}
+function makeP2ExamBank(){
+ return part2Book.map((x,idx)=>{
+   const correct=x.bank.find(b=>b[0]===x.answer)[1];
+   const candidates=x.bank.map(b=>b[1]);
+   let opts=[correct,...seededDistractors(correct,candidates,3)];
+   // rotate to avoid correct always first
+   const shift=idx%4; opts=opts.slice(shift).concat(opts.slice(0,shift));
+   return {id:"P2-"+idx,q:x.q.replace(/（　）/g,"_"),options:opts,answer:opts.indexOf(correct),source:x.source,lesson:x.lesson,topic:"SBT Phần 2",explain:x.explain};
+ });
+}
+function makeP4ExamBank(){
+ return part4Book.map((x,idx)=>{
+   const correct=x.bank.find(b=>b[0]===x.answer)[1];
+   const candidates=x.bank.map(b=>b[1]);
+   let opts=[correct,...seededDistractors(correct,candidates,3)];
+   const shift=(idx+1)%4; opts=opts.slice(shift).concat(opts.slice(0,shift));
+   return {id:"P4-"+idx,q:x.q,options:opts,answer:opts.indexOf(correct),source:x.source,lesson:x.lesson,topic:"SBT Phần 4",explain:`${x.q} ↔ ${correct}`};
+ });
+}
+const p2Exam = makeP2ExamBank();
+const p4Exam = makeP4ExamBank();
+const sbtExamBank = [...p2Exam,...p4Exam];
+
+// ===== STATE =====
+const $=id=>document.getElementById(id);
+const state=JSON.parse(localStorage.getItem("chn123_v3")||"{}");
+let exam=[],answers={},cur=0,seconds=1200,timerHandle=null,submitted=false;
+let mistakes=state.mistakes||[];
+let studyType="real",studyCurrent=null;
+let lessonFilter="all";
+
+function saveState(){ localStorage.setItem("chn123_v3",JSON.stringify({mistakes})); }
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function norm(s){return (s||"").replace(/[，,。.!！？?\s]/g,"").toLowerCase()}
+function getEssayOK(q,ans){return (q.accepted||[q.answer]).some(x=>norm(x)===norm(ans))}
+function takeRandom(arr,n){return shuffle(arr).slice(0,Math.min(n,arr.length))}
+function isAnswered(q){const a=answers[q.instanceId];return q.type==="single"?Number.isInteger(a):!!(a&&String(a).trim())}
+
+function buildExam(){
+ submitted=false;cur=0;answers={};seconds=1200;
+ // Form observed most consistently in the screenshots: 15 total, mixed SINGLECHOICE + ESSAY.
+ // Use real-image questions first, then SBT-derived questions so every mock remains close to both sources.
+ const realSingles=takeRandom(realMC,6).map(x=>({...x,type:"single",origin:"Ảnh đề thật"}));
+ const sbtSingles=takeRandom(sbtExamBank,3).map(x=>({...x,type:"single",origin:"SBT Bài 1–6"}));
+ const essays=takeRandom(realEssay,6).map(x=>({...x,type:"essay",origin:"Ảnh đề thật"}));
+ let mixed=shuffle([...realSingles,...sbtSingles,...essays]).slice(0,15);
+ // Ensure exactly 9 single + 6 essay
+ const s=mixed.filter(x=>x.type==="single"), e=mixed.filter(x=>x.type==="essay");
+ mixed=[...takeRandom(s,9),...takeRandom(e,6)];
+ mixed=shuffle(mixed).map((x,i)=>({...x,instanceId:`Q${Date.now()}-${i}`}));
+ exam=mixed;
+ renderNumberGrid();renderQuestion();startTimer();
+ $("examResult").classList.add("hidden");$("questionArea").classList.remove("hidden");
+}
+function startTimer(){
+ clearInterval(timerHandle);renderTimer();
+ timerHandle=setInterval(()=>{if(submitted)return;seconds--;renderTimer();if(seconds<=0){clearInterval(timerHandle);submitExam();}},1000)
+}
+function renderTimer(){
+ const m=Math.max(0,Math.floor(seconds/60)),s=Math.max(0,seconds%60);
+ $("timer").textContent=`${m}m : ${String(s).padStart(2,"0")}s`;
+ $("timeBar").style.width=`${Math.max(0,seconds/1200*100)}%`;
+}
+function renderNumberGrid(){
+ $("numberGrid").innerHTML=exam.map((q,i)=>`<button class="qnum ${i===cur?"active":""} ${isAnswered(q)?"answered":""}" data-i="${i}">${i+1}</button>`).join("");
+ [...$("numberGrid").children].forEach(b=>b.onclick=()=>{cur=+b.dataset.i;renderQuestion();renderNumberGrid()});
+}
+function renderQuestion(){
+ if(!exam.length)return;
+ const q=exam[cur];
+ $("qHead").textContent=`CÂU HỎI ${cur+1} (${q.type==="single"?"SINGLECHOICE":"ESSAY"})`;
+ $("qText").textContent=q.type==="essay"?q.tokens:q.q;
+ $("qPinyin").classList.toggle("hidden",q.type!=="essay");
+ $("qPinyin").textContent=q.type==="essay"?(q.pinyin||""):"";
+ $("options").innerHTML="";$("essayInput").classList.toggle("hidden",q.type!=="essay");
+ $("essayHelp").classList.toggle("hidden",q.type!=="essay");$("instantFeedback").classList.add("hidden");
+ if(q.type==="single"){
+   q.options.forEach((o,i)=>{
+     const d=document.createElement("div");d.className="option "+(answers[q.instanceId]===i?"selected":"");
+     d.innerHTML=`<span class="radio"></span><span class="option-text">${o}</span>`;
+     d.onclick=()=>{if(submitted)return;answers[q.instanceId]=i;renderQuestion();renderNumberGrid()};
+     $("options").appendChild(d);
+   });
+ }else{
+   $("essayInput").value=answers[q.instanceId]||"";
+   $("essayInput").oninput=e=>{answers[q.instanceId]=e.target.value;renderNumberGrid()};
+ }
+ $("prevQ").disabled=cur===0;$("nextQ").disabled=cur===exam.length-1;
+}
+function addMistake(q,userAns){
+ const key=q.type+"|"+(q.q||q.tokens);
+ if(!mistakes.some(x=>x.key===key)){
+   mistakes.push({key,type:q.type,q:q.q||q.tokens,answer:q.type==="single"?q.options[q.answer]:q.answer,user:userAns,source:q.origin||q.source||"",explain:q.explain||""});
+   saveState();
+ }
+}
+function submitExam(){
+ if(submitted)return;submitted=true;clearInterval(timerHandle);
+ let score=0,review=[];
+ exam.forEach((q,i)=>{
+  const a=answers[q.instanceId]; let ok=false,user="";
+  if(q.type==="single"){ok=a===q.answer;user=Number.isInteger(a)?q.options[a]:"(chưa trả lời)"}
+  else{ok=getEssayOK(q,a||"");user=(a||"(chưa trả lời)")}
+  if(ok)score++; else addMistake(q,user);
+  review.push({q,i,ok,user});
+ });
+ $("questionArea").classList.add("hidden");$("examResult").classList.remove("hidden");
+ $("resultSummary").innerHTML=`<b>Kết quả: ${score}/${exam.length}</b> &nbsp;•&nbsp; ${Math.round(score/exam.length*100)}%<br><span class="note">Các câu ESSAY được chấm theo trật tự câu; chấp nhận một số biến thể dấu câu hợp lý.</span>`;
+ $("reviewList").innerHTML=review.map(r=>{
+   const correctAns=r.q.type==="single"?r.q.options[r.q.answer]:r.q.answer;
+   return `<div class="review-item ${r.ok?"good":"bad"}">
+    <div><b>Câu ${r.i+1} • ${r.q.type==="single"?"SINGLECHOICE":"ESSAY"}</b> <span class="badge">${r.q.origin||"Nguồn luyện"}</span></div>
+    <div style="font-size:20px;margin:8px 0">${r.q.q||r.q.tokens}</div>
+    <div><b>Bạn:</b> ${r.user}</div><div><b>Đúng:</b> ${correctAns}</div>
+    ${r.q.explain?`<div class="note" style="margin-top:6px">${r.q.explain}</div>`:""}
+   </div>`
+ }).join("");
+ renderNumberGrid();
+}
+$("prevQ").onclick=()=>{if(cur>0){cur--;renderQuestion();renderNumberGrid()}};
+$("nextQ").onclick=()=>{if(cur<exam.length-1){cur++;renderQuestion();renderNumberGrid()}};
+$("reloadExam").onclick=()=>{if(confirm("Tạo lại đề mới? Bài hiện tại sẽ bị xóa."))buildExam()};
+$("saveExam").onclick=()=>alert("Bài làm được giữ trong trang này. Đừng đóng tab nếu bạn chưa nộp.");
+$("submitExam").onclick=submitExam;$("newExamAfter").onclick=buildExam;
+
+// ===== STUDY MODE =====
+function chooseStudyItem(arr){
+ let pool=arr;
+ if((studyType==="p2"||studyType==="p4")&&lessonFilter!=="all") pool=arr.filter(x=>String(x.lesson)===lessonFilter);
+ if(!pool.length)return null; let x=pool[Math.floor(Math.random()*pool.length)];
+ if(pool.length>1&&studyCurrent===x)x=pool[(pool.indexOf(x)+1)%pool.length];return x
+}
+function renderStudy(){
+ const box=$("studyCard");
+ if(studyType==="real"){studyCurrent=chooseStudyItem(realMC);renderStudyMC(studyCurrent,"Ảnh đề thật")}
+ if(studyType==="p2"){studyCurrent=chooseStudyItem(p2Exam);renderStudyMC(studyCurrent,studyCurrent?.source||"SBT Phần 2")}
+ if(studyType==="p4"){studyCurrent=chooseStudyItem(p4Exam);renderStudyMC(studyCurrent,studyCurrent?.source||"SBT Phần 4")}
+ if(studyType==="grammar"){renderGrammarStudy()}
+ if(studyType==="essay"){renderEssayStudy()}
+ if(studyType==="mistakes"){renderMistakes()}
+}
+function renderStudyMC(q,source){
+ const box=$("studyCard");if(!q){box.innerHTML="Không có câu trong phạm vi này.";return}
+ box.innerHTML=`<div class="row space"><div><span class="badge">${source}</span><div class="study-q">${q.q}</div></div><button id="nextStudy">Câu khác →</button></div>
+ <div class="study-options">${q.options.map((o,i)=>`<button class="study-opt" data-i="${i}">${o}</button>`).join("")}</div>
+ <div id="studyFb" class="feedback hidden"></div>`;
+ $("nextStudy").onclick=renderStudy;
+ [...box.querySelectorAll(".study-opt")].forEach(b=>b.onclick=()=>{
+  const i=+b.dataset.i,ok=i===q.answer;box.querySelectorAll(".study-opt").forEach(x=>x.disabled=true);
+  b.classList.add(ok?"ok":"no");if(!ok)box.querySelector(`.study-opt[data-i="${q.answer}"]`).classList.add("ok");
+  const fb=$("studyFb");fb.className="feedback "+(ok?"good":"bad");fb.innerHTML=`<b>${ok?"Đúng":"Sai"}</b><br>${q.explain||""}`;
+  if(!ok)addMistake({...q,type:"single",origin:source},q.options[i]);
+ })
+}
+function renderGrammarStudy(){
+ const g=grammarFocus[Math.floor(Math.random()*grammarFocus.length)];
+ $("studyCard").innerHTML=`<div class="row space"><span class="badge">Ngữ pháp đề ảnh</span><button id="nextStudy">Điểm khác →</button></div>
+ <div class="rulebox"><div class="rule">${g.topic}</div><div class="formula">${g.formula}</div><div><b>Ví dụ:</b> ${g.example}</div><div class="note" style="margin-top:8px"><b>Bẫy:</b> ${g.trap}</div></div>
+ <div class="note">Các cấu trúc này được rút trực tiếp từ dạng câu xuất hiện trong ảnh đề cũ; chúng không đồng nghĩa toàn bộ đều nằm trong phạm vi Bài 1–6 hiện tại.</div>`;
+ $("nextStudy").onclick=renderGrammarStudy;
+}
+function renderEssayStudy(){
+ const q=realEssay[Math.floor(Math.random()*realEssay.length)];studyCurrent=q;
+ $("studyCard").innerHTML=`<div class="row space"><span class="badge">ESSAY từ ảnh đề thật</span><button id="nextStudy">Câu khác →</button></div>
+ <div class="study-q">${q.tokens}</div><div class="pinyin">${q.pinyin}</div>
+ <textarea id="studyEssay" placeholder="Nhập câu đã sắp xếp..."></textarea>
+ <div class="row" style="margin-top:10px"><button class="primary" id="checkEssay">Kiểm tra</button><button id="showEssay">Xem đáp án</button></div>
+ <div id="essayFb" class="feedback hidden"></div>`;
+ $("nextStudy").onclick=renderEssayStudy;
+ $("checkEssay").onclick=()=>{
+   const a=$("studyEssay").value,ok=getEssayOK(q,a),fb=$("essayFb");
+   fb.className="feedback "+(ok?"good":"bad");fb.innerHTML=`<b>${ok?"Đúng":"Chưa đúng"}</b><br>Đáp án: ${q.answer}<br><span class="note">${q.explain}</span>`;
+   if(!ok)addMistake({...q,type:"essay",origin:"Ảnh đề thật"},a);
+ };
+ $("showEssay").onclick=()=>{const fb=$("essayFb");fb.className="feedback";fb.innerHTML=`<b>Đáp án:</b> ${q.answer}<br><span class="note">${q.explain}</span>`}
+}
+function renderMistakes(){
+ const box=$("studyCard");
+ box.innerHTML=`<div class="row space"><div><span class="badge">Câu cần ôn lại</span><div class="sub">Lưu từ đề mô phỏng và chế độ luyện.</div></div><button id="clearMist">Xóa tất cả</button></div>`+
+ (mistakes.length?mistakes.map(m=>`<div class="review-item bad"><div class="source-note">${m.source||""}</div><div style="font-size:20px;margin:6px 0">${m.q}</div><div><b>Bạn:</b> ${m.user}</div><div><b>Đúng:</b> ${m.answer}</div><div class="note">${m.explain||""}</div></div>`).join(""):`<p class="note">Chưa có câu sai.</p>`);
+ $("clearMist").onclick=()=>{mistakes=[];saveState();renderMistakes()}
+}
+document.querySelectorAll("[data-study]").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll("[data-study]").forEach(x=>x.classList.remove("active"));b.classList.add("active");studyType=b.dataset.study;renderStudy()
+});
+$("lessonFilter").onchange=e=>{lessonFilter=e.target.value;renderStudy()};
+
+// tabs
+$("tabExam").onclick=()=>{$("examView").classList.remove("hidden");$("studyView").classList.add("hidden");$("tabExam").className="blue";$("tabStudy").className="ghost"}
+$("tabStudy").onclick=()=>{$("studyView").classList.remove("hidden");$("examView").classList.add("hidden");$("tabStudy").className="blue";$("tabExam").className="ghost";renderStudy()}
+
+buildExam();
+</script>
+</body>
+</html>
